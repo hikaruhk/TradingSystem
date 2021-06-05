@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
-namespace TradingSystem.Services
+namespace TradingSystem.Access
 {
     /// <summary>
     /// Provides the mechanism to reach out and get a JWT token
@@ -47,15 +49,54 @@ namespace TradingSystem.Services
                 };
         }
 
+        /// <summary>
+        /// Takes a token and extracts the role from the given user, but only if it is not expired.
+        /// If expired, or has no role, returns empty string.
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public string GetRole(string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var secret = config.GetSection("auth:secret").Get<string>();
+            var encodedSecret = Encoding.UTF8.GetBytes(secret);
+
+            handler.ValidateToken(
+                token,
+                new TokenValidationParameters
+                {
+                    IssuerSigningKey = new SymmetricSecurityKey(encodedSecret),
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                },
+                out var securityToken);
+
+            var jwtSecurityToken = securityToken as JwtSecurityToken;
+
+            return jwtSecurityToken.ValidTo < DateTime.UtcNow
+                ? string.Empty
+                : jwtSecurityToken
+                    .Claims
+                    .SingleOrDefault(s => s.Type == "role")
+                    ?.Value ?? string.Empty;
+        }
+
         private string GetJwtToken(AuthenticationRequest request, DateTime expires)
         {
             var handler = new JwtSecurityTokenHandler();
             var secret = config.GetSection("auth:secret").Get<string>();
             var encodedSecret = Encoding.UTF8.GetBytes(secret);
 
+            //This would realistically not be done here.
+            var role = request.Username.Contains("Trader")
+                ? new Claim("role", "trader")
+                : new Claim("role", "audit");
+
             var token = handler.CreateJwtSecurityToken(
                 new SecurityTokenDescriptor
                 {
+                    Subject = new ClaimsIdentity(new[] { new Claim("name", request.Username), role }),
                     Expires = expires,
                     SigningCredentials = new SigningCredentials(
                         new SymmetricSecurityKey(encodedSecret),

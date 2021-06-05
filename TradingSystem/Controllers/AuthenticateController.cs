@@ -1,7 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using TradingSystem.Services;
+using TradingSystem.Access;
 
 namespace TradingSystem.Controllers
 {
@@ -9,17 +9,19 @@ namespace TradingSystem.Controllers
     [Route("[controller]")]
     public class AuthenticateController : ControllerBase
     {
-        private readonly ILogger<AuthenticateController> _logger;
+        private readonly IAuthenticationService authService;
 
-        public AuthenticateController(ILogger<AuthenticateController> logger)
+        public AuthenticateController(IAuthenticationService authService)
         {
-            _logger = logger;
+            this.authService = authService;
         }
 
         [HttpPost]
         public IActionResult GetToken([Required][FromBody]AuthenticationRequest request)
         {
-            return null;
+            var token = authService.GetAuthenticationResponse(request, DateTime.UtcNow);
+            
+            return Ok(token);
         }
     }
 }

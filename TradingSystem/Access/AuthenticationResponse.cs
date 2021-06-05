@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TradingSystem.Services
+namespace TradingSystem.Access
 {
     public class AuthenticationResponse
     {

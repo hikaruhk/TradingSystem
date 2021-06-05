@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using TradingSystem.Services;
+using TradingSystem.Access;
 
 namespace TradingSystemTests
 {
@@ -12,12 +12,12 @@ namespace TradingSystemTests
     {
         private const int Expires = 1;
 
-        [TestCase("UserABC", "passwordEFG", true, Description = "Is a valid user/pass")]
-        public void ShouldGenerateTokenForValidUser(string username, string password, bool hasToken)
+        [TestCase("UserABC", "passwordEFG", Description = "Is a valid user/pass")]
+        public void ShouldGenerateTokenForValidUser(string username, string password)
         {
             var configs = GetConfiguration();
             var service = new AuthenticationService(configs);
-            var currentTimestamp = new DateTime(3020, 06, 04);
+            var currentTimestamp = new DateTime(2022, 06, 04);
             
             var response = service.GetAuthenticationResponse(new AuthenticationRequest
             {
@@ -41,7 +41,6 @@ namespace TradingSystemTests
                 .Token
                 .Should()
                 .NotBeNullOrEmpty();
-            
         }
 
         [TestCase("UserABC", "", Description = "Is not a valid user")]
@@ -76,6 +75,23 @@ namespace TradingSystemTests
                 .Should()
                 .BeEmpty();
         }
+
+        [TestCase(AuditValidToken, ExpectedResult = "audit", Description = "Audit user should be audit role")]
+        [TestCase(TraderValidToken, ExpectedResult = "trader", Description = "Trader user should be audit trader")]
+        public string ShouldRetrieveRoleFromToken(string token)
+        {
+            var configs = GetConfiguration();
+            var service = new AuthenticationService(configs);
+
+            var response = service.GetRole(token);
+
+            return response;
+        }
+
+        //These tokens below will expire in a year, but luckily this is just a demo.
+
+        private const string AuditValidToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiVXNlckFCQyIsInJvbGUiOiJhdWRpdCIsIm5iZiI6MTYyMjg1NjE1MiwiZXhwIjoxNjU0MzI2MDYwLCJpYXQiOjE2MjI4NTYxNTJ9.llOCsun_SOmYZf00E3_Qkklgel6DlqlnYML0LY1Lg_4";
+        private const string TraderValidToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiVXNlclRyYWRlciIsInJvbGUiOiJ0cmFkZXIiLCJuYmYiOjE2MjI4NTYxMDIsImV4cCI6MTY1NDMyNjA2MCwiaWF0IjoxNjIyODU2MTAyfQ.n_iTC4W1fAVe9IBiYT98giEceZQj5nAMZJ-x7wtOKag";
 
         private IConfiguration GetConfiguration()
         {

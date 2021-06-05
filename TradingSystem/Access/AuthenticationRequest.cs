@@ -1,4 +1,4 @@
-﻿namespace TradingSystem.Services
+﻿namespace TradingSystem.Access
 {
     public class AuthenticationRequest
     {
