@@ -60,26 +60,38 @@ namespace TradingSystem.Access
             var handler = new JwtSecurityTokenHandler();
             var secret = config.GetSection("auth:secret").Get<string>();
             var encodedSecret = Encoding.UTF8.GetBytes(secret);
+            
+            var splitToken = token.Split(" ");
+            var formattedToken = splitToken.Length == 2
+                ? splitToken[1]
+                : token;
 
-            handler.ValidateToken(
-                token,
-                new TokenValidationParameters
-                {
-                    IssuerSigningKey = new SymmetricSecurityKey(encodedSecret),
-                    ValidateIssuerSigningKey = true,
-                    ValidateIssuer = false,
-                    ValidateAudience = false
-                },
-                out var securityToken);
+            try
+            {
+                handler.ValidateToken(
+                    formattedToken,
+                    new TokenValidationParameters
+                    {
+                        IssuerSigningKey = new SymmetricSecurityKey(encodedSecret),
+                        ValidateIssuerSigningKey = true,
+                        ValidateIssuer = false,
+                        ValidateAudience = false
+                    },
+                    out var securityToken);
 
-            var jwtSecurityToken = securityToken as JwtSecurityToken;
+                var jwtSecurityToken = securityToken as JwtSecurityToken;
 
-            return jwtSecurityToken.ValidTo < DateTime.UtcNow
-                ? string.Empty
-                : jwtSecurityToken
-                    .Claims
-                    .SingleOrDefault(s => s.Type == "role")
-                    ?.Value ?? string.Empty;
+                return jwtSecurityToken.ValidTo < DateTime.UtcNow
+                    ? string.Empty
+                    : jwtSecurityToken
+                        .Claims
+                        .SingleOrDefault(s => s.Type == "role")
+                        ?.Value ?? string.Empty;
+            }
+            catch (Exception x)
+            {
+                return string.Empty;
+            }
         }
 
         private string GetJwtToken(AuthenticationRequest request, DateTime expires)

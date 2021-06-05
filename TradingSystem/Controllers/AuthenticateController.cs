@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TradingSystem.Access;
 
@@ -16,6 +17,7 @@ namespace TradingSystem.Controllers
             this.authService = authService;
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public IActionResult GetToken(
             [Required][FromHeader]string username,
