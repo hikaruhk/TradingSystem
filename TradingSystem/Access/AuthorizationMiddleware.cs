@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
-using TradingSystem.Access;
 
 namespace TradingSystem.Access
 {

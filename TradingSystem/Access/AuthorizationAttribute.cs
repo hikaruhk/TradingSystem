@@ -16,7 +16,9 @@ namespace TradingSystem.Access
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            var currentRole = context.HttpContext.Items["role"].ToString();
+            var currentRole = (context.HttpContext.Items.TryGetValue("role", out var role)
+                ? role
+                : string.Empty) as string;
 
             if (string.IsNullOrWhiteSpace(currentRole) ||
                 !roles.Any(role => role.Equals(currentRole, StringComparison.InvariantCultureIgnoreCase)))

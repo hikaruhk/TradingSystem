@@ -13,6 +13,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using TradingSystem.Access;
+using TradingSystem.Services;
 
 namespace TradingSystem
 {
@@ -40,6 +42,13 @@ namespace TradingSystem
             });
 
             services.AddControllers();
+            services.AddMvc(config =>
+            {
+                config.Filters.Add(typeof(AuthorizationMiddleware));
+            });
+
+            services.AddScoped<IAuthenticationService, AuthenticationService>();
+            services.AddScoped<ITradingService, TradingService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -52,15 +61,21 @@ namespace TradingSystem
 
             app.UseHttpsRedirection();
             app.UseRouting();
-
             app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
+
+            //Swagger is available at root now.
+            app.UseSwagger()
+                .UseSwaggerUI(options =>
+                {
+                    options.SwaggerEndpoint("swagger/v1/swagger.json", "Trading");
+                    options.RoutePrefix = string.Empty;
+                });
         }
     }
 }
