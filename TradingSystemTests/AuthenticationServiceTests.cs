@@ -89,7 +89,7 @@ namespace TradingSystemTests
         }
 
         //These tokens below will expire in a year, but luckily this is just a demo.
-
+        //You can use these tokens when calling the app for real.
         private const string AuditValidToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiVXNlckFCQyIsInJvbGUiOiJhdWRpdCIsIm5iZiI6MTYyMjg1NjE1MiwiZXhwIjoxNjU0MzI2MDYwLCJpYXQiOjE2MjI4NTYxNTJ9.llOCsun_SOmYZf00E3_Qkklgel6DlqlnYML0LY1Lg_4";
         private const string TraderValidToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiVXNlclRyYWRlciIsInJvbGUiOiJ0cmFkZXIiLCJuYmYiOjE2MjI4NTYxMDIsImV4cCI6MTY1NDMyNjA2MCwiaWF0IjoxNjIyODU2MTAyfQ.n_iTC4W1fAVe9IBiYT98giEceZQj5nAMZJ-x7wtOKag";
 

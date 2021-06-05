@@ -4,16 +4,19 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using TradingSystem.Access;
+using TradingSystem.Datastore;
 using TradingSystem.Services;
 
 namespace TradingSystem
@@ -42,13 +45,18 @@ namespace TradingSystem
             });
 
             services.AddControllers();
-            services.AddMvc(config =>
-            {
-                config.Filters.Add(typeof(AuthorizationMiddleware));
-            });
+            services
+                .AddMvc(config =>
+                {
+                    config.Filters.Add(typeof(AuthorizationMiddleware));
+                })
+                .AddFluentValidation(f => f.RegisterValidatorsFromAssemblyContaining<TradeOrderValidator>());
 
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<ITradingService, TradingService>();
+
+            services.AddDbContext<TradingDbContext>(
+                options => options.UseInMemoryDatabase(databaseName: "tradingSystem"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
