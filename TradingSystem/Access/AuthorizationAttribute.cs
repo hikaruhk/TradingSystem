@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -6,11 +7,11 @@ namespace TradingSystem.Access
 {
     public class AuthorizationAttribute : Attribute, IAuthorizationFilter
     {
-        private readonly string role;
+        private readonly string[] roles;
 
-        public AuthorizationAttribute(string role)
+        public AuthorizationAttribute(string[] roles)
         {
-            this.role = role;
+            this.roles = roles;
         }
 
         public void OnAuthorization(AuthorizationFilterContext context)
@@ -18,7 +19,7 @@ namespace TradingSystem.Access
             var currentRole = context.HttpContext.Items["role"].ToString();
 
             if (string.IsNullOrWhiteSpace(currentRole) ||
-                !role.Equals(currentRole, StringComparison.InvariantCultureIgnoreCase))
+                !roles.Any(role => role.Equals(currentRole, StringComparison.InvariantCultureIgnoreCase)))
             {
                 context.Result = new UnauthorizedResult();
             }

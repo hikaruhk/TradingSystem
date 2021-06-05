@@ -1,27 +1,27 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using System;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using TradingSystem.Access;
 
-namespace TradingSystem.Controllers
+namespace TradingSystem.Services
 {
     [ApiController]
     [Route("[controller]")]
     public class TradingController : ControllerBase
     {
+        private readonly ITradingService tradingService;
 
-        public TradingController()
+        public TradingController(ITradingService tradingService)
         {
+            this.tradingService = tradingService;
         }
-    }
 
-    public class TradeOrder
-    {
-        public string SecurityCode { get; set; }
-        public string Side { get; set; }
-        public string OrderType { get; set; }
-        public int Quantity { get; set; }
-        public decimal Price { get; set; }
+
+        [Authorization(new[] { "audit", "trader" })]
+        [HttpGet]
+        public IActionResult GetOrders(
+            [Required][FromHeader]DateTime fromDate,
+            [Required][FromHeader]DateTime toDate) =>
+                Ok(tradingService.GetOrders(fromDate, toDate));
     }
 }
