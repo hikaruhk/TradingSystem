@@ -8,6 +8,6 @@ namespace TradingSystem.Datastore
         public TradingDbContext(DbContextOptions<TradingDbContext> options) : base(options) { }
 
         public DbSet<TradeOrder> TradeOrders { get; set; }
-        public DbSet<TradeOrder> ExecutedTradeOrders { get; set; }
+        public DbSet<ExecutedTradeOrder> ExecutedTradeOrders { get; set; }
     }
 }

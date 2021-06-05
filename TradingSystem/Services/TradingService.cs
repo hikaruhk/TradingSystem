@@ -17,15 +17,15 @@ namespace TradingSystem.Services
         }
 
         /// <summary>
-        /// Gets incomplete orders between two dates (created dates)
+        /// Gets executed orders between two dates (created dates)
         /// </summary>
         /// <param name="fromDate"></param>
         /// <param name="toDate"></param>
         /// <returns></returns>
-        public IEnumerable<TradeOrder> GetOrders(DateTime fromDate, DateTime toDate)
+        public IEnumerable<ExecutedTradeOrder> GetOrders(DateTime fromDate, DateTime toDate)
         {
             var selectedOrders = dbContext
-                .TradeOrders
+                .ExecutedTradeOrders
                 .Where(w => w.CreatedDate >= fromDate && w.CreatedDate < toDate && w.Quantity > 0);
 
             return selectedOrders;
@@ -53,7 +53,11 @@ namespace TradingSystem.Services
         {
             var availableOrders = dbContext
                 .TradeOrders
-                .Where(w => w.SecurityCode == newOrder.SecurityCode && newOrder.Side != w.Side)
+                .Where(
+                    order => order.SecurityCode == newOrder.SecurityCode &&
+                    newOrder.Side != order.Side &&
+                    ((order.Side.Equals("BUY", StringComparison.InvariantCultureIgnoreCase) && order.Price >= newOrder.Price)
+                    || (newOrder.Side.Equals("BUY", StringComparison.InvariantCultureIgnoreCase) && newOrder.Price >= order.Price)))
                 .OrderByDescending(o => o.CreatedDate);
 
             var fullfilledOrders = new List<TradeOrder>();
@@ -109,6 +113,10 @@ namespace TradingSystem.Services
             dbContext
                 .TradeOrders
                 .RemoveRange(fullfilledOrders);
+
+            await dbContext
+                .ExecutedTradeOrders
+                .AddRangeAsync(fullfilledOrders.Select(s => new ExecutedTradeOrder(s)));
 
             await dbContext.SaveChangesAsync();
 

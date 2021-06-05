@@ -48,7 +48,9 @@ namespace TradingSystemTests
 
             var result = await service.PlaceOrder(newOrder);
 
-            var inserted = await context.FindAsync<TradeOrder>(newOrder.Id);
+            var inserted = await context
+                .TradeOrders
+                .FindAsync(newOrder.Id);
 
             result
                 .IsSuccessful
@@ -115,7 +117,7 @@ namespace TradingSystemTests
             using var context = new TradingDbContext(database);
 
             var existingOrder = Guid.NewGuid().ToString();
-            await context.AddRangeAsync(
+            await context.TradeOrders.AddRangeAsync(
                 new TradeOrder
                 {
                     Id = existingOrder,
