@@ -272,9 +272,6 @@ namespace TradingSystemTests
                 .BeEmpty();
         }
 
-
-
-
         [Test]
         public async Task ShouldRetrieveOrders()
         {
@@ -323,7 +320,7 @@ namespace TradingSystemTests
         }
 
         [Test]
-        public async Task ShouldNotRetrieveOrders()
+        public async Task ShouldDeleteOrder()
         {
             var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkInMemoryDatabase()
@@ -336,11 +333,11 @@ namespace TradingSystemTests
 
             using var context = new TradingDbContext(database);
 
-            var existingOrder = Guid.NewGuid().ToString();
+            var existingOrder = Guid.NewGuid();
             await context.TradeOrders.AddRangeAsync(
                 new TradeOrder
                 {
-                    Id = existingOrder,
+                    Id = existingOrder.ToString(),
                     CreatedDate = DateTime.Now,
                     OrderType = "GTC",
                     Price = 10,
@@ -353,11 +350,56 @@ namespace TradingSystemTests
 
             var service = new TradingService(context);
 
-            var orders = service.GetOrders();
+            var orders = await service.DeleteOrder(existingOrder);
 
-            orders
-                .Should()
-                .BeEmpty();
+            orders.IsSuccessful.Should().BeTrue();
+            var deleted = await context
+                .TradeOrders
+                .FindAsync(existingOrder.ToString());
+
+            deleted.Should().BeNull();
+        }
+
+        [Test]
+        public async Task ShouldNotDeleteOrder()
+        {
+            var serviceProvider = new ServiceCollection()
+                .AddEntityFrameworkInMemoryDatabase()
+                .BuildServiceProvider();
+
+            var database = new DbContextOptionsBuilder<TradingDbContext>()
+                .UseInMemoryDatabase(databaseName: "tradeSystem")
+                .UseInternalServiceProvider(serviceProvider)
+                .Options;
+
+            using var context = new TradingDbContext(database);
+
+            var existingOrder = Guid.NewGuid();
+            await context.TradeOrders.AddRangeAsync(
+                new TradeOrder
+                {
+                    Id = existingOrder.ToString(),
+                    CreatedDate = DateTime.Now,
+                    OrderType = "GTC",
+                    Price = 10,
+                    Quantity = 0,
+                    SecurityCode = "AAPL",
+                    Side = "SELL"
+                });
+
+            await context.SaveChangesAsync();
+
+            var service = new TradingService(context);
+
+            var orders = await service.DeleteOrder(Guid.Empty);
+
+            orders.IsSuccessful.Should().BeFalse();
+
+            var deleted = await context
+                .TradeOrders
+                .FindAsync(existingOrder.ToString());
+
+            deleted.Should().NotBeNull();
         }
     }
 }
